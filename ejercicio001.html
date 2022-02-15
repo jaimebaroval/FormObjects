@@ -13,6 +13,7 @@
         border: 1px solid lightgrey;
         padding: 8px;
         outline: none;
+        color: #000000b5;
     }
 
     .element::placeholder {
@@ -21,6 +22,23 @@
 
     .validate-input {
         background: #00800033;
+    }
+
+    /* Validate Imput */
+
+    .element.validate {
+        background: #00800036;
+        color: #000000b5;
+    }
+
+    /* Reject Imput */
+
+    .element.reject {
+        background: #ff000024;
+    }
+
+    input.element.reject::placeholder {
+        color: #ff00002b;
     }
 </style>
 
@@ -33,8 +51,8 @@
         <input class="element" type="text" data-name="Movil" placeholder="Escribe tu Movil"></input>
         <input class="element" type="text" data-name="Empresa" placeholder="Escribe tu Empresa"></input>
         <input class="element cargo" type="text" data-name="Cargo" placeholder="Escribe tu Cargo" disabled></input>
-        <input class="element" type="email" data-name="Email" placeholder="Escribe tu Email"></input>
-        <input class="element" type="email" data-name="CopyEmail" placeholder="Confirma Email"></input>
+        <input class="element email" type="email" data-name="Email" placeholder="Escribe tu Email"></input>
+        <input class="element copy-mail" type="email" data-name="CopyEmail" placeholder="Confirma Email"></input>
     </div>
     <button class="button-active" style="margin-top: 20px;" disabled>Enviar 1</button>
     <div class="form-content" style="margin-top: 20px;">
@@ -47,13 +65,17 @@
 
 </body>
 <script>
+    const formContent = document.querySelectorAll('.form-content');
+    const emailFiled = document.querySelector('.email')
+    const emailCopyFiled = document.querySelector('.copy-mail')
 
     let inputElement = [];
-    let emailInput = '';
-    let emailInputCopy = '';
+    let emailInput = emailFiled;
+    let emailInputCopy = emailCopyFiled;
     let buttonActive = [];
+    let emailConfirm = false;
+    let copyEmailConfirm = false;
 
-    const formContent = document.querySelectorAll('.form-content');
 
     formContent.forEach((fc, idx) => {
         inputElement[idx] = fc.querySelectorAll('.element');
@@ -67,6 +89,11 @@
             iff.forEach(iffItem => {
                 if(iffItem.getAttribute('data-name') == 'Empresa') {
                     iffItem.addEventListener('keyup', this.onchangeFunc);
+                    iffItem.addEventListener('focusout', this.focusOutFunc);
+                } else if(iffItem.getAttribute('data-name') == 'Email') {
+                    iffItem.addEventListener('focusout', this.focusOutEmail);
+                } else if (iffItem.getAttribute('data-name') == 'CopyEmail') {
+                    iffItem.addEventListener('focusout', this.focusOutCopyEmail);
                 } else {
                     iffItem.addEventListener('focusout', this.focusOutFunc);
                 }
@@ -76,27 +103,16 @@
     }
     
     FormValidation.prototype.focusOutFunc = function (event) {
-        
-        if(event.currentTarget.type == 'email') {
-            event.currentTarget.getAttribute('data-name') == 'Email' ? emailInput = event.currentTarget.value : null;
-            event.currentTarget.getAttribute('data-name') == 'CopyEmail' ? emailInputCopy = event.currentTarget.value : null;
-            if(formGroup.emailValidationFormat(event)) {
-                formGroup.validatonButton(event);
-            }
-            if(formGroup.emailValidationFormat(event) && formGroup.emailValidationCopy()) {
-                formGroup.validatonButton(event);
-            } 
-        } else {
-            formGroup.validatonButton(event);
-        }
-        
+
+        formGroup.styleFormFields(event);
+        formGroup.validatonButton(event);
+        formGroup.emailValidationCopy();
         
     }   
     
     FormValidation.prototype.onchangeFunc = function (event) {
         const cargoField = document.querySelector('.cargo');
 
-        
         if(event.currentTarget.getAttribute('data-name') == 'Empresa') {
             if(event.currentTarget.value != '') {
                 cargoField.disabled = false;
@@ -105,9 +121,52 @@
             }
         }
     }
+
+    FormValidation.prototype.focusOutEmail = function (event) {
+        if(event.currentTarget.getAttribute('data-name') == 'Email') {
+            if(emailFiled.value != '' && formGroup.emailValidationFormat(event)) {
+                emailFiled.classList.add('validate');
+                emailFiled.classList.remove('reject');
+                emailConfirm = true;
+            } else {
+                emailFiled.classList.add('reject');
+                emailFiled.classList.validate('validate');
+                emailConfirm = false;
+            }
+        } 
+
+        formGroup.validatonButton(event);
+        
+    }
     
+    FormValidation.prototype.focusOutCopyEmail = function (event) {
+        if(event.currentTarget.getAttribute('data-name') == 'CopyEmail') {
+            if(emailCopyFiled.value != '' && formGroup.emailValidationFormat(event)) {
+                emailCopyFiled.classList.add('validate');
+                emailCopyFiled.classList.remove('reject');
+                copyEmailConfirm = true;
+            } else {
+                emailCopyFiled.classList.add('reject');
+                emailCopyFiled.classList.remove('validate');
+                copyEmailConfirm = false;
+            }
+        } 
+        
+        if(emailConfirm && copyEmailConfirm) {
+            emailCopyFiled.classList.add('validate');
+            emailCopyFiled.classList.remove('reject');
+        } else {
+            emailCopyFiled.classList.add('reject');
+            emailCopyFiled.classList.remove('validate');
+        }
+        
+        formGroup.validatonButton(event);
+    }
+
+    //Instance Creation    
     var formGroup = new FormValidation(inputElement);
 
+    //Methods
     formGroup.emailValidationFormat = function (event) {
         return event.currentTarget.value.match(
             /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
@@ -115,7 +174,7 @@
         }
         
     formGroup.emailValidationCopy = function () {
-        if(emailInput == emailInputCopy) {
+        if(emailFiled.value == emailCopyFiled.value) {
             return true;
         } else {
             return false;
@@ -132,7 +191,7 @@
 
         fieldsOnForm.forEach(fof => {
             if(fof.value == '') {
-                event.currentTarget.getAttribute('data-name') == 'CopyEmail' ? event.currentTarget.placeholder = 'Rellena mismo email' : event.currentTarget.placeholder = 'Rellena ' + dataName;
+                event.currentTarget.getAttribute('data-name') == 'CopyEmail' ? emailCopyFiled.placeholder = 'Rellena mismo email' : event.currentTarget.placeholder = 'Rellena ' + dataName;
                 fieldsArr++;
             }   
         })
@@ -141,9 +200,14 @@
     }
 
     formGroup.styleFormFields = function(event) {
-       
-    }
-        
+        if(event.currentTarget.value != '') {
+            event.currentTarget.classList.add('validate');
+            event.currentTarget.classList.remove('reject');
+        } else {
+            event.currentTarget.classList.add('reject');
+            event.currentTarget.classList.remove('validate');
+        }
+    }        
 
 </script>
 
