@@ -1,0 +1,150 @@
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ejercicio 001</title>
+</head>
+
+<style>
+    .element {
+        margin: 10px 15px 5px 0;
+        border: 1px solid lightgrey;
+        padding: 8px;
+        outline: none;
+    }
+
+    .element::placeholder {
+        color: rgb(235, 235, 235);
+    }
+
+    .validate-input {
+        background: #00800033;
+    }
+</style>
+
+<body>
+
+    <div class="form-content">
+        <input class="element" type="text" data-name="Nombre" placeholder="Escribe tu Nombre"></input>
+        <input class="element" type="text" data-name="Apellidos" placeholder="Escribe tus Apellidos"></input>
+        <input class="element" type="text" data-name="Teléfono" placeholder="Escribe tu Teléfono"></input>
+        <input class="element" type="text" data-name="Movil" placeholder="Escribe tu Movil"></input>
+        <input class="element" type="text" data-name="Empresa" placeholder="Escribe tu Empresa"></input>
+        <input class="element cargo" type="text" data-name="Cargo" placeholder="Escribe tu Cargo" disabled></input>
+        <input class="element" type="email" data-name="Email" placeholder="Escribe tu Email"></input>
+        <input class="element" type="email" data-name="CopyEmail" placeholder="Confirma Email"></input>
+    </div>
+    <button class="button-active" style="margin-top: 20px;" disabled>Enviar 1</button>
+    <div class="form-content" style="margin-top: 20px;">
+        <input class="element" type="text" data-name="Direccion" placeholder="Placeholder"></input>
+        <input class="element" type="text" data-name="Calle" placeholder="Placeholder"></input>
+        <input class="element" type="text" data-name="Numero" placeholder="Placeholder"></input>
+    </div>
+    <button class="button-active" style="margin-top: 20px;" disabled>Enviar 2</button>
+
+
+</body>
+<script>
+
+    let inputElement = [];
+    let emailInput = '';
+    let emailInputCopy = '';
+    let buttonActive = [];
+
+    const formContent = document.querySelectorAll('.form-content');
+
+    formContent.forEach((fc, idx) => {
+        inputElement[idx] = fc.querySelectorAll('.element');
+        buttonActive[idx] = fc.nextElementSibling;
+    })
+
+    //Objeto
+    function FormValidation(inputForm) {
+
+        inputForm.forEach((iff, idx) => {
+            iff.forEach(iffItem => {
+                if(iffItem.getAttribute('data-name') == 'Empresa') {
+                    iffItem.addEventListener('keyup', this.onchangeFunc);
+                } else {
+                    iffItem.addEventListener('focusout', this.focusOutFunc);
+                }
+            })
+        })
+
+    }
+    
+    FormValidation.prototype.focusOutFunc = function (event) {
+        
+        if(event.currentTarget.type == 'email') {
+            event.currentTarget.getAttribute('data-name') == 'Email' ? emailInput = event.currentTarget.value : null;
+            event.currentTarget.getAttribute('data-name') == 'CopyEmail' ? emailInputCopy = event.currentTarget.value : null;
+            if(formGroup.emailValidationFormat(event)) {
+                formGroup.validatonButton(event);
+            }
+            if(formGroup.emailValidationFormat(event) && formGroup.emailValidationCopy()) {
+                formGroup.validatonButton(event);
+            } 
+        } else {
+            formGroup.validatonButton(event);
+        }
+        
+        
+    }   
+    
+    FormValidation.prototype.onchangeFunc = function (event) {
+        const cargoField = document.querySelector('.cargo');
+
+        
+        if(event.currentTarget.getAttribute('data-name') == 'Empresa') {
+            if(event.currentTarget.value != '') {
+                cargoField.disabled = false;
+            } else {
+                cargoField.disabled = true;
+            }
+        }
+    }
+    
+    var formGroup = new FormValidation(inputElement);
+
+    formGroup.emailValidationFormat = function (event) {
+        return event.currentTarget.value.match(
+            /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+            );
+        }
+        
+    formGroup.emailValidationCopy = function () {
+        if(emailInput == emailInputCopy) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    formGroup.validatonButton = function (event) {
+        let buttonForm = event.currentTarget.parentNode.nextElementSibling;
+        let fieldsOnForm = event.currentTarget.parentNode.querySelectorAll('.element');
+        let activeButton = false;
+        let fieldsArr=0;
+        let dataName = event.currentTarget.getAttribute('data-name');
+
+
+        fieldsOnForm.forEach(fof => {
+            if(fof.value == '') {
+                event.currentTarget.getAttribute('data-name') == 'CopyEmail' ? event.currentTarget.placeholder = 'Rellena mismo email' : event.currentTarget.placeholder = 'Rellena ' + dataName;
+                fieldsArr++;
+            }   
+        })
+
+        fieldsArr == 0 && formGroup.emailValidationCopy() ? buttonForm.disabled = false : buttonForm.disabled = true;
+    }
+
+    formGroup.styleFormFields = function(event) {
+       
+    }
+        
+
+</script>
+
+</html>
